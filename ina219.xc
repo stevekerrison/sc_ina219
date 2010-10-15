@@ -6,7 +6,6 @@
  * Description: Interact with TI INA219 current/power sensor
  */
 
-#include <stdio.h>
 #include "ina219.h"
 
 //Work out the next time a conversion /should/ be ready (private)
@@ -64,7 +63,7 @@ int ina219_auto_calibrate(INA219_t &ina219, timer t, port iic_scl, port iic_sda,
 	int cal = 0;
 	if (current_lsb > min_lsb && current_lsb < max_lsb) {
 		cal = 40960000 / (current_lsb * rShunt_mR);
-		printf("Calibration value: %u, current_lsb: %u*10^-6, power_lsb: %u*10^-6\n",cal, current_lsb, 20*current_lsb);
+		//printf("Calibration value: %u, current_lsb: %u*10^-6, power_lsb: %u*10^-6\n",cal, current_lsb, 20*current_lsb);
 		if (program) {
 			ina219_calibrate(ina219, t, iic_scl, iic_sda, cal, current_lsb, 20*current_lsb);
 		}
