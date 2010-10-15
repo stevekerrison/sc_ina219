@@ -19,16 +19,24 @@
 					<value>true</value>
 				</dictionary>
 				<dictionary>
+					<key>org.eclipse.cdt.make.core.autoBuildTarget</key>
+					<value>all</value>
+				</dictionary>
+				<dictionary>
 					<key>org.eclipse.cdt.make.core.buildArguments</key>
 					<value></value>
 				</dictionary>
 				<dictionary>
 					<key>org.eclipse.cdt.make.core.buildCommand</key>
-					<value>make</value>
+					<value>xmake</value>
 				</dictionary>
 				<dictionary>
 					<key>org.eclipse.cdt.make.core.buildLocation</key>
-					<value>${workspace_loc:/ina219/Debug}</value>
+					<value>${workspace_loc:/ina219/Release}</value>
+				</dictionary>
+				<dictionary>
+					<key>org.eclipse.cdt.make.core.cleanBuildTarget</key>
+					<value>clean</value>
 				</dictionary>
 				<dictionary>
 					<key>org.eclipse.cdt.make.core.contents</key>
@@ -47,12 +55,16 @@
 					<value>true</value>
 				</dictionary>
 				<dictionary>
+					<key>org.eclipse.cdt.make.core.fullBuildTarget</key>
+					<value>all</value>
+				</dictionary>
+				<dictionary>
 					<key>org.eclipse.cdt.make.core.stopOnError</key>
 					<value>true</value>
 				</dictionary>
 				<dictionary>
 					<key>org.eclipse.cdt.make.core.useDefaultBuildCmd</key>
-					<value>false</value>
+					<value>true</value>
 				</dictionary>
 			</arguments>
 		</buildCommand>
