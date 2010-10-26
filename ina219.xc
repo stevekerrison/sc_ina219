@@ -7,6 +7,8 @@
  */
 
 #include "ina219.h"
+#include <stdlib.h>
+//#include <stdio.h>
 
 //Work out the next time a conversion /should/ be ready (private)
 void ina219_accesstime(INA219_t &ina219);
@@ -61,6 +63,10 @@ int ina219_auto_calibrate(INA219_t &ina219, timer t, port iic_scl, port iic_sda,
 	int max_lsb = iMax_uA / 4096;
 	int current_lsb = (min_lsb & 1) ? min_lsb + 1 : min_lsb + 2;
 	int cal = 0;
+	/*int max_current = current_lsb * 32767;
+	int max_current_bo = max_current >= iMax_uA ? iMax_uA : max_current;
+	int max_shunt = max_current_bo / 10; //0.1R shunt
+	int max_shunt_bo = max_shunt >= 3000000; //300mV*/
 	if (current_lsb > min_lsb && current_lsb < max_lsb) {
 		cal = 40960000 / (current_lsb * rShunt_mR);
 		//printf("Calibration value: %u, current_lsb: %u*10^-6, power_lsb: %u*10^-6\n",cal, current_lsb, 20*current_lsb);
@@ -76,7 +82,8 @@ XMOS_RTN_t ina219_read_reg(INA219_t &ina219, port iic_scl, port iic_sda,
 	char regptr[1];
 	char d[2];
 	XMOS_RTN_t ret = XMOS_FAIL;
-	if (INA219_VALID_REG(reg)) {
+	if (INA219_VALID_REG(reg))
+	{
 		regptr[0] = reg;
 		if (iic_write(iic_scl, iic_sda, ina219.addr, regptr, 1))
 		{
@@ -90,11 +97,18 @@ XMOS_RTN_t ina219_read_reg(INA219_t &ina219, port iic_scl, port iic_sda,
 uint ina219_bus_mV(INA219_t &ina219, port iic_scl, port iic_sda)
 {
 	int data = 0;
-	if (ina219_read_reg(ina219,iic_scl,iic_sda,INA219_REG_BUSV,data))
+	while ((data & 2) != 2)
 	{
-		return (data >> 1) & ~ 3;
+		ina219_read_reg(ina219,iic_scl,iic_sda,INA219_REG_BUSV,data);
+		/**
+		 * @fixme Why is the register read failing in some cases?
+		 */
+		/*if (!ina219_read_reg(ina219,iic_scl,iic_sda,INA219_REG_BUSV,data))
+		{
+			return 0;
+		}*/
 	}
-	return 0;
+	return (data >> 1) & ~3;
 }
 
 int ina219_shunt_uV(INA219_t &ina219, port iic_scl, port iic_sda)
