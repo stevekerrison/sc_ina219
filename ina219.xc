@@ -8,10 +8,10 @@
 
 #include "ina219.h"
 #include <stdlib.h>
-//#include <stdio.h>
+#include <stdio.h>
 
 //Work out the next time a conversion /should/ be ready (private)
-void ina219_accesstime(INA219_t &ina219);
+void ina219_accesstime(INA219_t &ina219, timer t);
 
 XMOS_RTN_t ina219_init(INA219_t &ina219, timer t, port iic_scl, port iic_sda,
 		int iic_ina219_address) {
@@ -19,8 +19,7 @@ XMOS_RTN_t ina219_init(INA219_t &ina219, timer t, port iic_scl, port iic_sda,
 	ina219.cal = 0;
 	ina219.calibd = 0;
 	ina219.config = 0x399F;	//This happens to be the default config
-	t :> ina219.accesstime;
-	ina219_accesstime(ina219);
+	ina219_accesstime(ina219,t);
 	return iic_initialise(iic_scl, iic_sda);
 }
 
@@ -51,8 +50,7 @@ XMOS_RTN_t ina219_calibrate(INA219_t &ina219, timer t, port iic_scl, port iic_sd
 	ina219.cur_lsb = cur_lsb;
 	ina219.pow_lsb = pow_lsb;
 	ina219.calibd = iic_write(iic_scl, iic_sda, ina219.addr, cd, 3);
-	t :> ina219.accesstime;
-	ina219_accesstime(ina219);
+	ina219_accesstime(ina219,t);
 	return ret;
 }
 
@@ -91,22 +89,22 @@ XMOS_RTN_t ina219_read_reg(INA219_t &ina219, port iic_scl, port iic_sda,
 			data = (d[0] << 8) | d[1];
 		}
 	}
+	if (!ret)
+	{
+		printf("INA219: Error reading reg %u\n",reg);
+	}
 	return ret;
 }
 
-uint ina219_bus_mV(INA219_t &ina219, port iic_scl, port iic_sda)
+unsigned int ina219_bus_mV(INA219_t &ina219, port iic_scl, port iic_sda)
 {
 	int data = 0;
 	while ((data & 2) != 2)
 	{
-		ina219_read_reg(ina219,iic_scl,iic_sda,INA219_REG_BUSV,data);
-		/**
-		 * @fixme Why is the register read failing in some cases?
-		 */
-		/*if (!ina219_read_reg(ina219,iic_scl,iic_sda,INA219_REG_BUSV,data))
+		if (!ina219_read_reg(ina219,iic_scl,iic_sda,INA219_REG_BUSV,data))
 		{
 			return 0;
-		}*/
+		}
 	}
 	return (data >> 1) & ~3;
 }
@@ -147,11 +145,11 @@ int ina219_current_uA(INA219_t &ina219, timer t, port iic_scl, port iic_sda)
 	return 0;
 }
 
-uint ina219_power_uW(INA219_t &ina219, timer t, port iic_scl, port iic_sda)
+unsigned int ina219_power_uW(INA219_t &ina219, timer t, port iic_scl, port iic_sda)
 {
 	int data = 0;
-	t when timerafter(ina219.accesstime) :> ina219.accesstime;
-	while ((data & 2) != 2)
+	//t when timerafter(ina219.accesstime) :> void;// :> ina219.accesstime;
+	while (0 && (data & 2) != 2)
 	{
 		if (!ina219_read_reg(ina219,iic_scl,iic_sda,INA219_REG_BUSV,data))
 		{
@@ -160,20 +158,16 @@ uint ina219_power_uW(INA219_t &ina219, timer t, port iic_scl, port iic_sda)
 	}
 	if (ina219_read_reg(ina219,iic_scl,iic_sda,INA219_REG_POWER,data))
 	{
-		ina219_accesstime(ina219);
-		if (data & 0x8000)
-		{
-			data |= 0xFFFF0000; //32-bit sign extend
-		}
-		ina219_accesstime(ina219);
+		ina219_accesstime(ina219,t);
 		return data * ina219.pow_lsb;
 	}
 	return 0;
 }
 
-void ina219_accesstime(INA219_t &ina219)
+void ina219_accesstime(INA219_t &ina219, timer t)
 {
 	int badc = (ina219.config >> 7) & 0xF, sadc = (ina219.config >> 3) & 0xF;
 	static int times[16] = INA219_CVT_TIMES;
+	t :> ina219.accesstime;
 	ina219.accesstime += (badc > sadc) ? times[badc] : times[sadc];
 }

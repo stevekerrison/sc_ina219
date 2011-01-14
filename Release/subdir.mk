@@ -24,7 +24,7 @@ libXK-1.a: ../XK-1.xn $(USER_OBJS)
 %.o: ../%.xc
 	@echo 'Building file: $<'
 	@echo 'Invoking: XC Compiler'
-	xcc -I"/Users/admin/phys_steve/workspace/iic-steve" -O2 -g -Wall -c -o "$@" "$<" "../XK-1.xn"
+	xcc -I"/home/steve/xmos-workspace/iic-steve" -O2 -g -Wall -c -o "$@" "$<" "../XK-1.xn"
 	@echo 'Finished building: $<'
 	@echo ' '
 

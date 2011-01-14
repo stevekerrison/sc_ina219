@@ -85,7 +85,7 @@ typedef struct INA219_t {
 	int pow_lsb; //Power LSB
 	char calibd; //Has been calibrated
 	int config; //Cache of config bits.
-	uint accesstime; //When we can next expect to be able to read from the power/current registers
+	unsigned int accesstime; //When we can next expect to be able to read from the power/current registers
 } INA219_t;
 
 /**
@@ -156,9 +156,9 @@ XMOS_RTN_t ina219_read_reg(INA219_t &ina219, port iic_scl, port iic_sda, int reg
  * @param INA219_t &ina219 The INA219 to read.
  * @param port iic_scl IIC clock port
  * @param port iic_sda IIC data port
- * @return uint The bus voltage (mV)
+ * @return unsigned int The bus voltage (mV)
  */
-uint ina219_bus_mV(INA219_t &ina219, port iic_scl, port iic_sda);
+unsigned int ina219_bus_mV(INA219_t &ina219, port iic_scl, port iic_sda);
 
 /**
  * Get the shunt voltage in microVolts
@@ -180,9 +180,9 @@ int ina219_shunt_uV(INA219_t &ina219, port iic_scl, port iic_sda);
  * @param INA219_t &ina219 The INA219 to read.
  * @param port iic_scl IIC clock port
  * @param port iic_sda IIC data port
- * @return uint The power (uW)
+ * @return unsigned int The power (uW)
  */
-uint ina219_power_uW(INA219_t &ina219, timer t, port iic_scl, port iic_sda);
+unsigned int ina219_power_uW(INA219_t &ina219, timer t, port iic_scl, port iic_sda);
 
 /**
  * Get the current in microAmps
