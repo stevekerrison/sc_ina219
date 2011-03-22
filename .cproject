@@ -39,6 +39,7 @@
 <option defaultValue="gnu.c.optimization.level.none" id="gnu.c.compiler.option.optimization.level.1857253348" name="Optimization Level" superClass="gnu.c.compiler.option.optimization.level" valueType="enumerated"/>
 <option id="gnu.c.compiler.option.debugging.level.914420554" name="Debug Level" superClass="gnu.c.compiler.option.debugging.level"/>
 <inputType id="com.xmos.cdt.c.compiler.input.509178026" superClass="com.xmos.cdt.c.compiler.input"/>
+<inputType id="com.xmos.cdt.c.compilerXNInput.1914892133" name="XN File" superClass="com.xmos.cdt.c.compilerXNInput"/>
 </tool>
 <tool id="com.xmos.cdt.cpp.compiler.lib.debug.270408916" name="C++ Compiler" superClass="com.xmos.cdt.cpp.compiler.lib.debug">
 <option id="gnu.cpp.compiler.option.optimization.level.1467005164" name="Optimization Level" superClass="gnu.cpp.compiler.option.optimization.level" value="gnu.cpp.compiler.optimization.level.none" valueType="enumerated"/>
@@ -736,7 +737,7 @@
 <tool id="com.xmos.cdt.xc.compiler.lib.release.1062922441" name="XC Compiler" superClass="com.xmos.cdt.xc.compiler.lib.release">
 <option defaultValue="gnu.c.optimization.level.more" id="gnu.c.compiler.option.optimization.level.123389272" name="Optimization Level" superClass="gnu.c.compiler.option.optimization.level" valueType="enumerated"/>
 <option id="gnu.c.compiler.option.debugging.level.849041439" name="Debug Level" superClass="gnu.c.compiler.option.debugging.level"/>
-<option id="gnu.c.compiler.option.include.paths.1111951985" superClass="gnu.c.compiler.option.include.paths" valueType="includePath">
+<option id="gnu.c.compiler.option.include.paths.1111951985" name="Include paths (-I)" superClass="gnu.c.compiler.option.include.paths" valueType="includePath">
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/iic-steve}&quot;"/>
 </option>
 <inputType id="com.xmos.cdt.xc.compiler.input.915085712" name="XC Sources" superClass="com.xmos.cdt.xc.compiler.input"/>
@@ -746,6 +747,7 @@
 <option defaultValue="gnu.c.optimization.level.more" id="gnu.c.compiler.option.optimization.level.108332866" name="Optimization Level" superClass="gnu.c.compiler.option.optimization.level" valueType="enumerated"/>
 <option id="gnu.c.compiler.option.debugging.level.235846388" name="Debug Level" superClass="gnu.c.compiler.option.debugging.level"/>
 <inputType id="com.xmos.cdt.c.compiler.input.1571344701" superClass="com.xmos.cdt.c.compiler.input"/>
+<inputType id="com.xmos.cdt.c.compilerXNInput.264128691" name="XN File" superClass="com.xmos.cdt.c.compilerXNInput"/>
 </tool>
 <tool id="com.xmos.cdt.cpp.compiler.lib.release.1491774021" name="C++ Compiler" superClass="com.xmos.cdt.cpp.compiler.lib.release">
 <option id="gnu.cpp.compiler.option.optimization.level.1967350357" name="Optimization Level" superClass="gnu.cpp.compiler.option.optimization.level" value="gnu.cpp.compiler.optimization.level.most" valueType="enumerated"/>

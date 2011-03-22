@@ -21,6 +21,9 @@ endif
 ifneq ($(strip $(CC_DEPS)),)
 -include $(CC_DEPS)
 endif
+ifneq ($(strip $(XC_DEPS)),)
+-include $(XC_DEPS)
+endif
 ifneq ($(strip $(CPP_DEPS)),)
 -include $(CPP_DEPS)
 endif
@@ -40,16 +43,16 @@ endif
 all: libina219.a
 
 # Tool invocations
-libina219.a: $(OBJS) $(XN_SRCS) $(USER_OBJS)
+libina219.a: $(OBJS) $(USER_OBJS)
 	@echo 'Building target: $@'
 	@echo 'Invoking: Archiver'
-	xmosar -r "libina219.a" $(OBJS) $(USER_OBJS) $(LIBS) $(XN_SRCS)
+	xmosar -r libina219.a $(OBJS) $(USER_OBJS) $(LIBS)
 	@echo 'Finished building target: $@'
 	@echo ' '
 
 # Other Targets
 clean:
-	-$(call RM, $(C++_DEPS)$(OBJS)$(C_DEPS)$(CC_DEPS)$(ARCHIVES)$(CPP_DEPS)$(CXX_DEPS)$(C_UPPER_DEPS) libina219.a)
+	-$(call RM, $(C++_DEPS)$(OBJS)$(C_DEPS)$(CC_DEPS)$(ARCHIVES)$(XC_DEPS)$(CPP_DEPS)$(CXX_DEPS)$(C_UPPER_DEPS) libina219.a)
 	-@echo ' '
 
 .PHONY: all clean dependents

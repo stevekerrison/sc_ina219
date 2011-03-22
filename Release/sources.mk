@@ -19,6 +19,7 @@ OBJS :=
 C_DEPS := 
 CC_DEPS := 
 ARCHIVES := 
+XC_DEPS := 
 CPP_DEPS := 
 CXX_DEPS := 
 C_UPPER_DEPS := 

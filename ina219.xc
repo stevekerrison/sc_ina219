@@ -7,6 +7,8 @@
  */
 
 #include "ina219.h"
+#include <platform.h>
+#include <xs1.h>
 #include <stdlib.h>
 #include <stdio.h>
 
@@ -126,7 +128,7 @@ int ina219_shunt_uV(INA219_t &ina219, port iic_scl, port iic_sda)
 int ina219_current_uA(INA219_t &ina219, timer t, port iic_scl, port iic_sda)
 {
 	int data = 0;
-	t when timerafter(ina219.accesstime) :> ina219.accesstime;
+	t when timerafter (ina219.accesstime) :> ina219.accesstime;
 	while ((data & 2) != 2)
 	{
 		if (!ina219_read_reg(ina219,iic_scl,iic_sda,INA219_REG_BUSV,data))
@@ -149,11 +151,15 @@ unsigned int ina219_power_uW(INA219_t &ina219, timer t, port iic_scl, port iic_s
 {
 	int data = 0;
 	//t when timerafter(ina219.accesstime) :> void;// :> ina219.accesstime;
-	while (0 && (data & 2) != 2)
+	while ((data & 2) != 2)
 	{
 		if (!ina219_read_reg(ina219,iic_scl,iic_sda,INA219_REG_BUSV,data))
 		{
 			return 0;
+		}
+		if (data & 1) //test overflow bit (system is usually calibrated not to overflow)
+		{
+			printf("INA219: WARNING - An overflow has occurred in power reading!\n");
 		}
 	}
 	if (ina219_read_reg(ina219,iic_scl,iic_sda,INA219_REG_POWER,data))
