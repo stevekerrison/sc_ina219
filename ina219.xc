@@ -21,6 +21,7 @@ XMOS_RTN_t ina219_init(INA219_t &ina219, timer t, port iic_scl, port iic_sda,
 	ina219.cal = 0;
 	ina219.calibd = 0;
 	ina219.config = 0x399F;	//This happens to be the default config
+	t :> ina219.accesstime;
 	ina219_accesstime(ina219,t);
 	return iic_initialise(iic_scl, iic_sda);
 }
@@ -52,6 +53,7 @@ XMOS_RTN_t ina219_calibrate(INA219_t &ina219, timer t, port iic_scl, port iic_sd
 	ina219.cur_lsb = cur_lsb;
 	ina219.pow_lsb = pow_lsb;
 	ina219.calibd = iic_write(iic_scl, iic_sda, ina219.addr, cd, 3);
+	t :> ina219.accesstime;
 	ina219_accesstime(ina219,t);
 	return ret;
 }
@@ -128,7 +130,7 @@ int ina219_shunt_uV(INA219_t &ina219, port iic_scl, port iic_sda)
 int ina219_current_uA(INA219_t &ina219, timer t, port iic_scl, port iic_sda)
 {
 	int data = 0;
-	t when timerafter (ina219.accesstime) :> ina219.accesstime;
+	//t when timerafter (ina219.accesstime) :> ina219.accesstime;
 	while ((data & 2) != 2)
 	{
 		if (!ina219_read_reg(ina219,iic_scl,iic_sda,INA219_REG_BUSV,data))
@@ -151,7 +153,7 @@ unsigned int ina219_power_uW(INA219_t &ina219, timer t, port iic_scl, port iic_s
 {
 	int data = 0;
 	//t when timerafter(ina219.accesstime) :> void;// :> ina219.accesstime;
-	while ((data & 2) != 2)
+	/*while (!(data & 2))
 	{
 		if (!ina219_read_reg(ina219,iic_scl,iic_sda,INA219_REG_BUSV,data))
 		{
@@ -161,10 +163,10 @@ unsigned int ina219_power_uW(INA219_t &ina219, timer t, port iic_scl, port iic_s
 		{
 			printf("INA219: WARNING - An overflow has occurred in power reading!\n");
 		}
-	}
+	}*/
+	ina219_accesstime(ina219,t);
 	if (ina219_read_reg(ina219,iic_scl,iic_sda,INA219_REG_POWER,data))
 	{
-		ina219_accesstime(ina219,t);
 		return data * ina219.pow_lsb;
 	}
 	return 0;
@@ -172,8 +174,8 @@ unsigned int ina219_power_uW(INA219_t &ina219, timer t, port iic_scl, port iic_s
 
 void ina219_accesstime(INA219_t &ina219, timer t)
 {
-	int badc = (ina219.config >> 7) & 0xF, sadc = (ina219.config >> 3) & 0xF;
 	static int times[16] = INA219_CVT_TIMES;
-	t :> ina219.accesstime;
+	int badc = (ina219.config >> 7) & 0xF, sadc = (ina219.config >> 3) & 0xF;
+	t when timerafter(ina219.accesstime) :> void;
 	ina219.accesstime += (badc > sadc) ? times[badc] : times[sadc];
 }
