@@ -21,7 +21,7 @@
 //Work out the next time a conversion /should/ be ready (private)
 void ina219_accesstime(INA219_t &ina219, timer t);
 
-XMOS_RTN_t ina219_init(INA219_t &ina219, timer t, port iic_scl, port iic_sda,
+XMOS_RTN_t ina219_init(INA219_t &ina219, timer t, struct r_i2c &ports,
 		int iic_ina219_address) {
 	ina219.addr = iic_ina219_address;
 	ina219.cal = 0;
@@ -29,43 +29,48 @@ XMOS_RTN_t ina219_init(INA219_t &ina219, timer t, port iic_scl, port iic_sda,
 	ina219.config = 0x399F;	//This happens to be the default config
 	t :> ina219.accesstime;
 	ina219_accesstime(ina219,t);
-	return iic_initialise(iic_scl, iic_sda);
+
+    i2c_master_init(ports);
+	return XMOS_SUCCESS;
 }
 
-XMOS_RTN_t ina219_config(INA219_t &ina219, timer t, port iic_scl, port iic_sda, int config)
+XMOS_RTN_t ina219_write_reg(INA219_t &ina219, int reg, unsigned short data, struct r_i2c &ports)
 {
-	char cd[3];
-	int opchange = 0;
-	int ret = XMOS_FAIL;
-	cd[0] = INA219_REG_CONFIG;
-	cd[1] = (config >> 8) & 0xFF;
-	cd[2] = config & 0xFF;
-	opchange = (ina219.config & 7) != (config & 7);
+	unsigned char d[2];
+
+	d[0] = (data>>8)&0xFF;
+	d[1] = data&0xFF;
+
+    return i2c_master_write_reg(ina219.addr, reg, d, 2, ports);
+}
+
+XMOS_RTN_t ina219_config(INA219_t &ina219, timer t, struct r_i2c &ports, int config)
+{
 	ina219.config = config & 0xFFFF;
-	ret = iic_write(iic_scl,iic_sda,ina219.addr,cd,3);
-	return ret;
+    return ina219_write_reg(ina219, INA219_REG_CONFIG, ina219.config, ports);
 }
 
 
 
-XMOS_RTN_t ina219_calibrate(INA219_t &ina219, timer t, port iic_scl, port iic_sda,
-		int calibration_value, int cur_lsb, int pow_lsb) {
-	char cd[3];
-	int ret = XMOS_FAIL;
-	cd[0] = INA219_REG_CALIB;
-	cd[1] = (calibration_value >> 8) & 0xFF;
-	cd[2] = calibration_value & 0xFF;
+XMOS_RTN_t ina219_calibrate(INA219_t &ina219, timer t, struct r_i2c &ports,
+		int calibration_value, int cur_lsb, int pow_lsb) 
+{
+	int ret;
 	ina219.cal = calibration_value & 0xFFFF;
 	ina219.cur_lsb = cur_lsb;
 	ina219.pow_lsb = pow_lsb;
-	ina219.calibd = iic_write(iic_scl, iic_sda, ina219.addr, cd, 3);
+    ret = ina219_write_reg(ina219, INA219_REG_CALIB, ina219.cal, ports);
+    ina219.calibd = ret;
+
 	t :> ina219.accesstime;
 	ina219_accesstime(ina219,t);
-	return ret;
+
+	return ina219.calibd;
 }
 
-int ina219_auto_calibrate(INA219_t &ina219, timer t, port iic_scl, port iic_sda,
-		int iMax_uA, int rShunt_mR, int program) {
+int ina219_auto_calibrate(INA219_t &ina219, timer t, struct r_i2c &ports,
+		int iMax_uA, int rShunt_mR, int program) 
+{
 	//Adaptation of the calibration formulae as per INA219 datasheet.
 	int min_lsb = iMax_uA / 32767;
 	int max_lsb = iMax_uA / 4096;
@@ -79,25 +84,23 @@ int ina219_auto_calibrate(INA219_t &ina219, timer t, port iic_scl, port iic_sda,
 		cal = 40960000 / (current_lsb * rShunt_mR);
 		//printf("Calibration value: %u, current_lsb: %u*10^-6, power_lsb: %u*10^-6\n",cal, current_lsb, 20*current_lsb);
 		if (program) {
-			ina219_calibrate(ina219, t, iic_scl, iic_sda, cal, current_lsb, 20*current_lsb);
+			if(!ina219_calibrate(ina219, t, ports, cal, current_lsb, 20*current_lsb))
+				printf("Calibration Error\n");
 		}
 	}
 	return cal;
 }
 
-XMOS_RTN_t ina219_read_reg(INA219_t &ina219, port iic_scl, port iic_sda,
-		int reg, int &data) {
-	char regptr[1];
-	char d[2];
+XMOS_RTN_t ina219_read_reg(INA219_t &ina219, struct r_i2c &ports,
+		int reg, int &data) 
+{
+    char d[2] = {0,0};
 	XMOS_RTN_t ret = XMOS_FAIL;
+
 	if (INA219_VALID_REG(reg))
 	{
-		regptr[0] = reg;
-		if (iic_write(iic_scl, iic_sda, ina219.addr, regptr, 1))
-		{
-			ret = iic_read(iic_scl, iic_sda, ina219.addr, d, 2);
-			data = (d[0] << 8) | d[1];
-		}
+        ret = i2c_master_read_reg(ina219.addr, reg, d, 2, ports);
+		data = (d[0] << 8) | d[1];
 	}
 	if (!ret)
 	{
@@ -106,12 +109,12 @@ XMOS_RTN_t ina219_read_reg(INA219_t &ina219, port iic_scl, port iic_sda,
 	return ret;
 }
 
-unsigned int ina219_bus_mV(INA219_t &ina219, port iic_scl, port iic_sda)
+unsigned int ina219_bus_mV(INA219_t &ina219, struct r_i2c &ports)
 {
 	int data = 0;
 	while ((data & 2) != 2)
 	{
-		if (!ina219_read_reg(ina219,iic_scl,iic_sda,INA219_REG_BUSV,data))
+		if (!ina219_read_reg(ina219,ports,INA219_REG_BUSV,data))
 		{
 			return 0;
 		}
@@ -119,10 +122,10 @@ unsigned int ina219_bus_mV(INA219_t &ina219, port iic_scl, port iic_sda)
 	return (data >> 1) & ~3;
 }
 
-int ina219_shunt_uV(INA219_t &ina219, port iic_scl, port iic_sda)
+int ina219_shunt_uV(INA219_t &ina219, struct r_i2c &ports)
 {
 	int data = 0;
-	if (ina219_read_reg(ina219,iic_scl,iic_sda,INA219_REG_SHUNTV,data))
+	if (ina219_read_reg(ina219,ports,INA219_REG_SHUNTV,data))
 	{
 		if (data & 0x8000)
 		{
@@ -133,17 +136,17 @@ int ina219_shunt_uV(INA219_t &ina219, port iic_scl, port iic_sda)
 	return 0;
 }
 
-int ina219_current_uA(INA219_t &ina219, timer t, port iic_scl, port iic_sda)
+int ina219_current_uA(INA219_t &ina219, timer t, struct r_i2c &ports)
 {
 	int data = 0;
 	while ((data & 2) != 2)
 	{
-		if (!ina219_read_reg(ina219,iic_scl,iic_sda,INA219_REG_BUSV,data))
+		if (!ina219_read_reg(ina219,ports,INA219_REG_BUSV,data))
 		{
 			return 0;
 		}
 	}
-	if (ina219_read_reg(ina219,iic_scl,iic_sda,INA219_REG_CURRENT,data))
+	if (ina219_read_reg(ina219,ports,INA219_REG_CURRENT,data))
 	{
 		if (data & 0x8000)
 		{
@@ -154,13 +157,13 @@ int ina219_current_uA(INA219_t &ina219, timer t, port iic_scl, port iic_sda)
 	return 0;
 }
 
-unsigned int ina219_power_uW(INA219_t &ina219, timer t, port iic_scl, port iic_sda)
+unsigned int ina219_power_uW(INA219_t &ina219, timer t, struct r_i2c &ports)
 {
 	int data = 0;
 	//t when timerafter(ina219.accesstime) :> void;// :> ina219.accesstime;
 	/*while (!(data & 2))
 	{
-		if (!ina219_read_reg(ina219,iic_scl,iic_sda,INA219_REG_BUSV,data))
+		if (!ina219_read_reg(ina219,ports,INA219_REG_BUSV,data))
 		{
 			return 0;
 		}
@@ -170,7 +173,7 @@ unsigned int ina219_power_uW(INA219_t &ina219, timer t, port iic_scl, port iic_s
 		}
 	}*/
 	ina219_accesstime(ina219,t);
-	if (ina219_read_reg(ina219,iic_scl,iic_sda,INA219_REG_POWER,data))
+	if (ina219_read_reg(ina219,ports,INA219_REG_POWER,data))
 	{
 		return data * ina219.pow_lsb;
 	}

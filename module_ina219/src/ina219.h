@@ -17,7 +17,11 @@
 
 
 #include <platform.h>
-#include "iic.h"
+#include "i2c.h"
+
+typedef int XMOS_RTN_t;
+#define XMOS_SUCCESS    1
+#define XMOS_FAIL       0
 
 //Register addresses
 #define INA219_REG_CONFIG	0x0
@@ -103,7 +107,7 @@ typedef struct INA219_t {
  * @param int iic_ina219_address Slave address of INA219
  * @return XMOS_RTN_t XMOS_SUCCESS or XMOS_FAIL
  */
-XMOS_RTN_t ina219_init(INA219_t &ina219, timer t, port iic_scl, port iic_sda, int iic_ina219_address);
+XMOS_RTN_t ina219_init(INA219_t &ina219, timer t, struct r_i2c &ports, int iic_ina219_address);
 
 /**
  * Configure the INA219 voltage ranges and resolutions, as per the datasheet
@@ -114,7 +118,7 @@ XMOS_RTN_t ina219_init(INA219_t &ina219, timer t, port iic_scl, port iic_sda, in
  * @param int Data to poke into the configuration register
  * @return XMOS_RTN_t XMOS_SUCCESS or XMOS_FAIL
  */
-XMOS_RTN_t ina219_config(INA219_t &ina219, timer t, port iic_scl, port iic_sda, int config);
+XMOS_RTN_t ina219_config(INA219_t &ina219, timer t, struct r_i2c &ports, int config);
 
 /**
  * Set the calibration ragister of an INA219
@@ -127,7 +131,7 @@ XMOS_RTN_t ina219_config(INA219_t &ina219, timer t, port iic_scl, port iic_sda, 
  * @param int pow_usb The magnitude of the LSB in the power register
  * @return XMOS_RTN_t XMOS_SUCCESS or XMOS_FAIL
  */
-XMOS_RTN_t ina219_calibrate(INA219_t &ina219, timer t, port iic_scl, port iic_sda, int calibration_value, int cur_lsb, int pow_lsb);
+XMOS_RTN_t ina219_calibrate(INA219_t &ina219, timer t, struct r_i2c &ports, int calibration_value, int cur_lsb, int pow_lsb);
 
 /**
  * Automatically calculate the required calibration value.
@@ -144,7 +148,7 @@ XMOS_RTN_t ina219_calibrate(INA219_t &ina219, timer t, port iic_scl, port iic_sd
  * @param int program If != 0 then the calibration value will be written to the IN219
  * @return int The calculated calibration value, 0 on constraint failure.
  */
-int ina219_auto_calibrate(INA219_t &ina219, timer t, port iic_scl, port iic_sda, int iMax_uA, int rShunt_mR, int program);
+int ina219_auto_calibrate(INA219_t &ina219, timer t, struct r_i2c &ports, int iMax_uA, int rShunt_mR, int program);
 
 /**
  * Read a register of an INA219
@@ -155,7 +159,7 @@ int ina219_auto_calibrate(INA219_t &ina219, timer t, port iic_scl, port iic_sda,
  * @param int data Reference into which we will put data (16-bit, zerofilled).
  * @return XMOS_RTN_t XMOS_SUCCESS or XMOS_FAIL
  */
-XMOS_RTN_t ina219_read_reg(INA219_t &ina219, port iic_scl, port iic_sda, int reg, int &data);
+XMOS_RTN_t ina219_read_reg(INA219_t &ina219, struct r_i2c &ports, int reg, int &data);
 
 /**
  * Get the bus voltage in milliVolts
@@ -164,7 +168,7 @@ XMOS_RTN_t ina219_read_reg(INA219_t &ina219, port iic_scl, port iic_sda, int reg
  * @param port iic_sda IIC data port
  * @return unsigned int The bus voltage (mV)
  */
-unsigned int ina219_bus_mV(INA219_t &ina219, port iic_scl, port iic_sda);
+unsigned int ina219_bus_mV(INA219_t &ina219, struct r_i2c &ports);
 
 /**
  * Get the shunt voltage in microVolts
@@ -176,7 +180,7 @@ unsigned int ina219_bus_mV(INA219_t &ina219, port iic_scl, port iic_sda);
  * @param port iic_sda IIC data port
  * @return int The shunt voltage (uV)
  */
-int ina219_shunt_uV(INA219_t &ina219, port iic_scl, port iic_sda);
+int ina219_shunt_uV(INA219_t &ina219, struct r_i2c &ports);
 
 /**
  * Get the power in microWatts
@@ -188,7 +192,7 @@ int ina219_shunt_uV(INA219_t &ina219, port iic_scl, port iic_sda);
  * @param port iic_sda IIC data port
  * @return unsigned int The power (uW)
  */
-unsigned int ina219_power_uW(INA219_t &ina219, timer t, port iic_scl, port iic_sda);
+unsigned int ina219_power_uW(INA219_t &ina219, timer t, struct r_i2c &ports);
 
 /**
  * Get the current in microAmps
@@ -200,7 +204,7 @@ unsigned int ina219_power_uW(INA219_t &ina219, timer t, port iic_scl, port iic_s
  * @param port iic_sda IIC data port
  * @return int The shunt current (uA)
  */
-int ina219_current_uA(INA219_t &ina219, timer t, port iic_scl, port iic_sda);
+int ina219_current_uA(INA219_t &ina219, timer t, struct r_i2c &ports);
 
 
 #endif /* INA219_H_ */
