@@ -22,15 +22,12 @@ To Do
 
 * High-speed I2C mode
 
-Known Issues
-============
-
-* Not bundled with an I2C library; needs to be patched to work with e.g. https://github.com/xcore/sc_i2c
-
 Required Repositories
 ================
 
 * xcommon
+* sc_i2c (module_i2c_master)
+  - https://github.com/xcore/sc_i2c
 
 Support
 =======
